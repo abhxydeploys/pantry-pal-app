@@ -35,18 +35,18 @@ const calculateExpiryDetails = (item: PantryItem): { remainingDays: number; stat
     if (shelfLifeRatio > 2/3) {
       status = 'fresh';
       statusText = `Expires in ${remainingDays + 1} day(s)`;
-      statusColor = 'bg-green-500 text-white';
+      statusColor = 'bg-green-500 text-white'; // Specific color for "fresh"
       icon = <CheckCircle className="h-4 w-4 text-white" />;
     } else if (shelfLifeRatio >= 1/3) {
       status = 'nearing-expiry';
       statusText = `Expires in ${remainingDays + 1} day(s)`;
-      statusColor = 'bg-yellow-500 text-black';
+      statusColor = 'bg-yellow-500 text-black'; // Specific color for "nearing-expiry"
       icon = <Clock className="h-4 w-4 text-black" />;
     } else {
       status = 'expires-soon';
       statusText = `Expires in ${remainingDays + 1} day(s)`;
-      statusColor = 'bg-orange-500 text-white'; // Using the requested accent color family via orange
-      icon = <AlertTriangle className="h-4 w-4 text-white" />;
+      statusColor = 'bg-accent text-accent-foreground'; // Use theme accent color
+      icon = <AlertTriangle className="h-4 w-4 text-accent-foreground" />;
     }
   }
   
