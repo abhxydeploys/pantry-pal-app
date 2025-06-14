@@ -6,7 +6,7 @@ import PantryItemForm from '@/components/pantry/PantryItemForm';
 import PantryList from '@/components/pantry/PantryList';
 import RecipeSuggestions from '@/components/pantry/RecipeSuggestions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Utensils, PackagePlus, ListChecks, Loader2 } from 'lucide-react';
+import { Utensils, PackagePlus, ListChecks, Loader2, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 export default function PantryManager() {
@@ -64,7 +64,10 @@ export default function PantryManager() {
   return (
     <div className="space-y-8">
       <header className="text-center pt-8 pb-4">
-        <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary">PantryPal</h1>
+        <h1 className="flex items-center justify-center text-4xl md:text-5xl font-bold font-headline text-primary">
+          <Sparkles className="w-10 h-10 md:w-12 md:h-12 mr-3 text-accent" />
+          PantryPal
+        </h1>
         <p className="text-lg text-muted-foreground mt-2">Your Smart Kitchen Assistant for Less Waste & More Taste!</p>
       </header>
 
