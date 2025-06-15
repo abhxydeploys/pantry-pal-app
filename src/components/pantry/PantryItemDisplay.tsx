@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { PantryItem, ExpiryStatus } from '@/components/pantry/PantryItem';
@@ -14,16 +15,23 @@ interface PantryItemDisplayProps {
 
 const calculateExpiryDetails = (item: PantryItem): { remainingDays: number; status: ExpiryStatus; statusText: string; statusColor: string; icon: React.ReactNode } => {
   const today = new Date();
+  today.setHours(0,0,0,0); // Normalize today to the start of the day
   const addedDate = new Date(item.addedDate); // Ensure it's a Date object
+  addedDate.setHours(0,0,0,0); // Normalize addedDate to the start of the day
+
   const expiryDate = new Date(addedDate);
   expiryDate.setDate(addedDate.getDate() + item.shelfLife);
 
-  const remainingDays = differenceInDays(expiryDate, today);
+  const remainingDays = differenceInDays(expiryDate, today); // Number of *full days remaining AFTER today*
   
   let status: ExpiryStatus;
   let statusText: string;
   let statusColor: string;
   let icon: React.ReactNode;
+
+  // Thresholds (consistent with PantryAlerts.tsx)
+  const nearingExpiryThresholdDays = 7; // Items with 4-7 days remaining
+  const expiresSoonThresholdDays = 3;   // Items with 0-3 days remaining
 
   if (remainingDays < 0) {
     status = 'expired';
@@ -31,22 +39,25 @@ const calculateExpiryDetails = (item: PantryItem): { remainingDays: number; stat
     statusColor = 'bg-destructive text-destructive-foreground';
     icon = <AlertTriangle className="h-4 w-4 text-destructive-foreground" />;
   } else {
-    const shelfLifeRatio = item.shelfLife > 0 ? (remainingDays + 1) / item.shelfLife : 1; // Add 1 to remainingDays for inclusive count
-    
-    if (shelfLifeRatio > 2/3) {
-      status = 'fresh';
-      statusText = `Expires in ${remainingDays + 1} day(s)`;
-      statusColor = 'bg-green-600 text-white'; // Specific color for "fresh"
-      icon = <CheckCircle className="h-4 w-4 text-white" />;
-    } else if (shelfLifeRatio >= 1/3) {
-      status = 'nearing-expiry';
-      statusText = `Expires in ${remainingDays + 1} day(s)`;
-      statusColor = 'bg-yellow-500 text-black'; // Specific color for "nearing-expiry"
-      icon = <Clock className="h-4 w-4 text-black" />;
+    // Determine statusText first
+    if (remainingDays === 0) {
+      statusText = `Expires today`;
     } else {
+      statusText = `Expires in ${remainingDays} day${remainingDays === 1 ? '' : 's'}`;
+    }
+
+    // Determine status and color based on remainingDays
+    if (remainingDays > nearingExpiryThresholdDays) { // More than 7 days left
+      status = 'fresh';
+      statusColor = 'bg-green-600 text-white';
+      icon = <CheckCircle className="h-4 w-4 text-white" />;
+    } else if (remainingDays > expiresSoonThresholdDays) { // 4-7 days left
+      status = 'nearing-expiry';
+      statusColor = 'bg-yellow-500 text-black';
+      icon = <Clock className="h-4 w-4 text-black" />;
+    } else { // 0-3 days left
       status = 'expires-soon';
-      statusText = `Expires in ${remainingDays + 1} day(s)`;
-      statusColor = 'bg-accent text-accent-foreground'; // Use theme accent color for "expires-soon"
+      statusColor = 'bg-accent text-accent-foreground';
       icon = <AlertTriangle className="h-4 w-4 text-accent-foreground" />;
     }
   }

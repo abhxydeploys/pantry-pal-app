@@ -30,30 +30,38 @@ const getAlertInfoForItem = (item: PantryItem): AlertInfo | null => {
 
   const remainingDays = differenceInDays(expiryDate, today);
 
-  const nearingExpiryThresholdDays = 7;
-  const expiresSoonThresholdDays = 3;
+  const nearingExpiryThresholdDays = 7; // Items with 4-7 days remaining
+  const expiresSoonThresholdDays = 3; // Items with 0-3 days remaining
+
+  const formattedAddedDate = format(addedDate, "MMM dd, yyyy");
 
   if (remainingDays < 0) {
     return {
       remainingDays,
       status: 'expired',
-      statusText: `Expired ${formatDistanceToNowStrict(expiryDate, { addSuffix: true })}. Added on ${format(addedDate, "MMM dd, yyyy")}.`,
+      statusText: `Expired ${formatDistanceToNowStrict(expiryDate, { addSuffix: true })}. Added on ${formattedAddedDate}.`,
       alertVariant: 'destructive',
       icon: <XCircle className="h-5 w-5" />,
     };
-  } else if (remainingDays <= expiresSoonThresholdDays) {
+  } else if (remainingDays <= expiresSoonThresholdDays) { // 0-3 days remaining
+    let text: string;
+    if (remainingDays === 0) {
+      text = `Expires today! Use immediately. Added on ${formattedAddedDate}.`;
+    } else {
+      text = `Expires in ${remainingDays} day${remainingDays === 1 ? '' : 's'}! Use very soon. Added on ${formattedAddedDate}.`;
+    }
     return {
       remainingDays,
       status: 'expires-soon',
-      statusText: `Expires in ${remainingDays + 1} day(s)! Use very soon. Added on ${format(addedDate, "MMM dd, yyyy")}.`,
+      statusText: text,
       alertVariant: 'destructive',
       icon: <AlertTriangle className="h-5 w-5" />,
     };
-  } else if (remainingDays <= nearingExpiryThresholdDays) {
+  } else if (remainingDays <= nearingExpiryThresholdDays) { // 4-7 days remaining
     return {
       remainingDays,
       status: 'nearing-expiry',
-      statusText: `Nearing expiry: ${remainingDays + 1} day(s) left. Plan to use it. Added on ${format(addedDate, "MMM dd, yyyy")}.`,
+      statusText: `Nearing expiry: ${remainingDays} day${remainingDays === 1 ? '' : 's'} left. Plan to use it. Added on ${formattedAddedDate}.`,
       alertVariant: 'default',
       icon: <Clock className="h-5 w-5" />,
     };
