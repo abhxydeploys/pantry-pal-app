@@ -1,11 +1,7 @@
 
 // Import the Genkit core libraries and plugins.
 import {genkit, z} from "genkit";
-import {googleAI} from "@genkit-ai/googleai";
-
-// Import models from the Google AI plugin. The Google AI API provides access to
-// several generative models. Here, we import Gemini 2.0 Flash.
-import {gemini20Flash} from "@genkit-ai/googleai";
+import {googleAI, gemini20Flash} from "@genkit-ai/googleai";
 
 // Cloud Functions for Firebase supports Genkit natively. The onCallGenkit
 // function creates a callable function from a Genkit action. It automatically
