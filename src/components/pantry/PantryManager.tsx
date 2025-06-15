@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -5,6 +6,7 @@ import type { PantryItem, NewPantryItem } from '@/components/pantry/PantryItem';
 import PantryItemForm from '@/components/pantry/PantryItemForm';
 import PantryList from '@/components/pantry/PantryList';
 import RecipeSuggestions from '@/components/pantry/RecipeSuggestions';
+import PantryAlerts from '@/components/pantry/PantryAlerts'; // Import the new component
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Utensils, PackagePlus, ListChecks, Loader2, Sparkles } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -70,6 +72,8 @@ export default function PantryManager() {
         </h1>
         <p className="text-lg text-muted-foreground mt-2">Your Smart Kitchen Assistant for Less Waste & More Taste!</p>
       </header>
+
+      {isMounted && <PantryAlerts items={pantryItems} />} {/* Render PantryAlerts conditionally after mount */}
 
       <div className="grid lg:grid-cols-3 gap-8 items-start">
         <Card className="shadow-xl rounded-lg lg:col-span-1">
