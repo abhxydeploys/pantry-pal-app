@@ -2,13 +2,14 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyDTi6OXgsu-83DgXjFwIW0igoytj0pCSH4",
+  authDomain: "pantrypal-iyxgb.firebaseapp.com",
+  projectId: "pantrypal-iyxgb",
+  storageBucket: "pantrypal-iyxgb.firebasestorage.app",
+  messagingSenderId: "118142853197",
+  appId: "1:118142853197:web:2e3e7bf14e7c117e6d3c04"
 };
 
 let app: FirebaseApp;
