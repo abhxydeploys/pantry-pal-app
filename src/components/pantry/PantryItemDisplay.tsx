@@ -31,11 +31,12 @@ const calculateExpiryDetails = (item: PantryItem): { remainingDays: number; stat
     statusColor = 'bg-destructive text-destructive-foreground';
     icon = <AlertTriangle className="h-4 w-4 text-destructive-foreground" />;
   } else {
-    const shelfLifeRatio = item.shelfLife > 0 ? remainingDays / item.shelfLife : 0;
+    const shelfLifeRatio = item.shelfLife > 0 ? (remainingDays + 1) / item.shelfLife : 1; // Add 1 to remainingDays for inclusive count
+    
     if (shelfLifeRatio > 2/3) {
       status = 'fresh';
       statusText = `Expires in ${remainingDays + 1} day(s)`;
-      statusColor = 'bg-green-500 text-white'; // Specific color for "fresh"
+      statusColor = 'bg-green-600 text-white'; // Specific color for "fresh"
       icon = <CheckCircle className="h-4 w-4 text-white" />;
     } else if (shelfLifeRatio >= 1/3) {
       status = 'nearing-expiry';
@@ -45,7 +46,7 @@ const calculateExpiryDetails = (item: PantryItem): { remainingDays: number; stat
     } else {
       status = 'expires-soon';
       statusText = `Expires in ${remainingDays + 1} day(s)`;
-      statusColor = 'bg-accent text-accent-foreground'; // Use theme accent color
+      statusColor = 'bg-accent text-accent-foreground'; // Use theme accent color for "expires-soon"
       icon = <AlertTriangle className="h-4 w-4 text-accent-foreground" />;
     }
   }

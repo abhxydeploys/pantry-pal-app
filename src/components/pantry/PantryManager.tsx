@@ -78,7 +78,7 @@ export default function PantryManager() {
               <PackagePlus className="w-7 h-7 text-primary" />
               Add Item
             </CardTitle>
-            <CardDescription>Enter new items into your digital pantry.</CardDescription>
+            <CardDescription>Enter new items or scan them using your camera.</CardDescription>
           </CardHeader>
           <CardContent>
             <PantryItemForm onAddItem={handleAddItem} />
