@@ -3,10 +3,9 @@ import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 
 // Your web app's Firebase configuration
-// IMPORTANT: Replace the apiKey value below with your *actual* Firebase project's API key.
-// You can find this in your Firebase project settings.
+// IMPORTANT: Double-check that this apiKey is EXACTLY from your Firebase project settings for 'pantrypal-iyxgb'.
 const firebaseConfig = {
-  apiKey: "AIzaSyDTi6OXgsu-83DgXjFwIW0igoytj0pCSH4", // <-- REPLACE THIS WITH YOUR REAL API KEY
+  apiKey: "AIzaSyDTi6OXgsu-83DgXjFwIW0igoytj0pCSH4", // <-- THIS MUST BE YOUR ACTUAL, VALID API KEY
   authDomain: "pantrypal-iyxgb.firebaseapp.com",
   projectId: "pantrypal-iyxgb",
   storageBucket: "pantrypal-iyxgb.firebasestorage.app",
