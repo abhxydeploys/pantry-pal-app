@@ -8,16 +8,19 @@ runConfig:
   # memoryMiB: 512
 
 # Environment variables and secrets.
-# env:
-  # Configure environment variables.
-  # See https://firebase.google.com/docs/app-hosting/configure#user-defined-environment
+env:
+  # Grant access to secrets in Cloud Secret Manager.
+  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
+  #
+  # Make sure you have created a secret named GOOGLE_API_KEY in Google Cloud Secret Manager
+  # with your Google AI API key as its value.
+  - variable: GOOGLE_API_KEY
+    secret: GOOGLE_API_KEY # This refers to the name of the secret in Secret Manager
+    availability:
+      - RUNTIME
+  # Example of a plain environment variable:
   # - variable: MESSAGE
   #   value: Hello world!
   #   availability:
   #     - BUILD
   #     - RUNTIME
-
-  # Grant access to secrets in Cloud Secret Manager.
-  # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
-  # - variable: MY_SECRET
-  #   secret: mySecretRef
