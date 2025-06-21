@@ -199,18 +199,7 @@ export default function AuthForm() {
                   )}
                 </div>
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="login-password">Password</Label>
-                    <Button
-                      type="button"
-                      variant="link"
-                      className="h-auto p-0 text-sm font-medium"
-                      onClick={handlePasswordReset}
-                      disabled={isLoading}
-                    >
-                      Forgot Password?
-                    </Button>
-                  </div>
+                  <Label htmlFor="login-password">Password</Label>
                    <div className="relative">
                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
@@ -221,9 +210,20 @@ export default function AuthForm() {
                       {...loginForm.register('password')}
                     />
                   </div>
-                  {loginForm.formState.errors.password && (
-                    <p className="text-sm text-destructive">{loginForm.formState.errors.password.message}</p>
-                  )}
+                  <div className="flex items-center text-sm">
+                    {loginForm.formState.errors.password && (
+                        <p className="text-destructive">{loginForm.formState.errors.password.message}</p>
+                    )}
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 font-medium ml-auto"
+                      onClick={handlePasswordReset}
+                      disabled={isLoading}
+                    >
+                      Forgot Password?
+                    </Button>
+                  </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? <Loader2 className="animate-spin" /> : <LogIn />}
