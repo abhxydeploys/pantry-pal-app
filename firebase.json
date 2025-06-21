@@ -8,7 +8,7 @@
   },
   "apphosting": [
     {
-      "backendId": "pantrypal-backend",
+      "backendId": "pantrypal-backend-v2",
       "rootDir": "/",
       "ignore": [
         "node_modules",
