@@ -12,6 +12,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,6 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Mail, KeyRound, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -68,6 +71,7 @@ export default function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { user, setUser } = useAuth();
+  const { toast } = useToast();
 
   const loginForm = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
   const signupForm = useForm<SignupInput>({ resolver: zodResolver(signupSchema) });
@@ -108,6 +112,39 @@ export default function AuthForm() {
       router.push('/');
     } catch (e: any) {
       setError(e.message || 'Failed to sign in with Google. Please try again.');
+    }
+    setIsLoading(false);
+  };
+
+  const handlePasswordReset = async () => {
+    setError(null);
+    const email = loginForm.getValues('email');
+    const isEmailValid = await loginForm.trigger('email');
+
+    if (!isEmailValid) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Email',
+        description: 'Please enter a valid email to reset your password.',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: 'Password Reset Email Sent',
+        description: `If an account for ${email} exists, a reset link has been sent.`,
+      });
+    } catch (e: any) {
+      const friendlyError = 'Failed to send password reset email. Please try again.';
+      setError(friendlyError);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: friendlyError,
+      });
     }
     setIsLoading(false);
   };
@@ -162,7 +199,18 @@ export default function AuthForm() {
                   )}
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="login-password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="login-password">Password</Label>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 text-sm font-medium"
+                      onClick={handlePasswordReset}
+                      disabled={isLoading}
+                    >
+                      Forgot Password?
+                    </Button>
+                  </div>
                    <div className="relative">
                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
