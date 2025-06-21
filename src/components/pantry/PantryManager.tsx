@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { PantryItem, NewPantryItem } from '@/components/pantry/PantryItem';
+import { getPantryItems, addPantryItem, removePantryItem } from '@/lib/pantry-service';
 import PantryItemForm from '@/components/pantry/PantryItemForm';
 import PantryList from '@/components/pantry/PantryList';
 import RecipeSuggestions from '@/components/pantry/RecipeSuggestions';
@@ -16,76 +17,95 @@ import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useToast } from "@/hooks/use-toast";
 
 
 export default function PantryManager() {
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
-  const [isMounted, setIsMounted] = useState(false);
-  const { user, loading: authLoading, initialLoading } = useAuth();
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
+  const { user, initialLoading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
-    setIsMounted(true);
-    if (user) {
-      try {
-        const storedItems = localStorage.getItem(`pantryItems_${user.uid}`);
-        if (storedItems) {
-          setPantryItems(JSON.parse(storedItems).map((item: any) => ({
-            ...item,
-            addedDate: new Date(item.addedDate) 
-          })));
-        } else {
-          setPantryItems([]); // Clear items if user changes and no items for them
-        }
-      } catch (error) {
-        console.error("Failed to load pantry items from localStorage", error);
-      }
-    } else if (!authLoading && !initialLoading) { // If not loading and no user, clear items
-        setPantryItems([]);
-        localStorage.removeItem('pantryItems'); // Clear generic key if any
+    // Fetch items from Firestore when user logs in or auth state is resolved.
+    if (user && !initialLoading) {
+      setIsLoadingItems(true);
+      getPantryItems()
+        .then(items => {
+          setPantryItems(items);
+        })
+        .catch(error => {
+          console.error("Failed to load pantry items:", error);
+          toast({
+            variant: "destructive",
+            title: "Error Loading Pantry",
+            description: "Could not fetch your pantry items. Please try again later.",
+          });
+        })
+        .finally(() => {
+          setIsLoadingItems(false);
+        });
+    } else if (!user && !initialLoading) {
+      // User is logged out, clear items and stop loading.
+      setPantryItems([]);
+      setIsLoadingItems(false);
     }
-  }, [user, authLoading, initialLoading]);
+  }, [user, initialLoading, toast]);
 
-  useEffect(() => {
-    if (isMounted && user) {
-      try {
-        localStorage.setItem(`pantryItems_${user.uid}`, JSON.stringify(pantryItems));
-      } catch (error) {
-        console.error("Failed to save pantry items to localStorage", error);
-      }
+
+  const handleAddItem = useCallback(async (newItem: NewPantryItem) => {
+    if (!user) return;
+    try {
+      const addedItem = await addPantryItem(newItem);
+      setPantryItems(prevItems => [...prevItems, addedItem]);
+    } catch (error) {
+      console.error("Failed to add item:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add the item to your pantry.",
+      });
     }
-  }, [pantryItems, isMounted, user]);
+  }, [user, toast]);
 
-  const handleAddItem = useCallback((newItem: NewPantryItem) => {
-    if (!user) return; // Should not happen if UI is protected
-    setPantryItems(prevItems => {
-      const uniqueId = crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}-${Math.random()}`;
-      return [
-        ...prevItems,
-        { ...newItem, id: uniqueId, addedDate: new Date() }
-      ];
-    });
-  }, [user]);
-
-  const handleRemoveItem = useCallback((id: string) => {
+  const handleRemoveItem = useCallback(async (id: string) => {
      if (!user) return;
+    
+    const originalItems = [...pantryItems];
+    // Optimistic UI update: remove item from state immediately.
     setPantryItems(prevItems => prevItems.filter(item => item.id !== id));
-  }, [user]);
+
+    try {
+      await removePantryItem(id);
+    } catch (error) {
+       console.error("Failed to remove item:", error);
+       // If the database call fails, roll back the UI change.
+       setPantryItems(originalItems);
+       toast({
+         variant: "destructive",
+         title: "Error",
+         description: "Failed to remove the item. Please try again.",
+       });
+    }
+  }, [user, pantryItems, toast]);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // setUser(null) is handled by onAuthStateChanged in AuthContext
-      setPantryItems([]); // Clear local state on logout
-      // router.push('/auth'); // Redirect to login, or let AuthContext handle view
+      // The useEffect hook will handle clearing the pantry items.
     } catch (error) {
       console.error("Error signing out: ", error);
-      // Potentially show a toast error
+      toast({
+        variant: "destructive",
+        title: "Logout Error",
+        description: "There was a problem signing out.",
+      });
     }
   };
   
-  // Display loading spinner while auth state or initial mount is resolving
-  if (initialLoading || !isMounted) {
+  // Display a full-page loader only during the initial app/auth load.
+  if (initialLoading) {
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -174,7 +194,7 @@ export default function PantryManager() {
           <CardDescription>View, manage, and track expiry of your food items.</CardDescription>
         </CardHeader>
         <CardContent>
-          <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} />
+          <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} isLoading={isLoadingItems} />
         </CardContent>
       </Card>
     </div>
