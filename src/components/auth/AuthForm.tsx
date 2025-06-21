@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -72,6 +72,14 @@ export default function AuthForm() {
   const router = useRouter();
   const { user, setUser } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Redirect if user is logged in. This is a side-effect and should be in useEffect.
+    // This also acts as a fallback for the redirect logic in AuthContext.
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
   const loginForm = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
   const signupForm = useForm<SignupInput>({ resolver: zodResolver(signupSchema) });
@@ -150,7 +158,6 @@ export default function AuthForm() {
   };
   
   if (user) {
-     router.push('/'); // Should be handled by initialLoading in AuthContext, but as a fallback.
      return (
         <div className="flex justify-center items-center min-h-screen">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
