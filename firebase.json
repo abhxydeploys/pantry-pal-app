@@ -6,23 +6,6 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": [
-    {
-      "source": "pantrypalcodebase",
-      "codebase": "pantrypalcodebase",
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ],
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ]
-    }
-  ],
   "apphosting": [
     {
       "backendId": "pantrypal-backend",
@@ -32,7 +15,8 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "functions"
+        "functions",
+        "pantrypalcodebase"
       ]
     }
   ]
