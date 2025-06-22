@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { PantryItem, ExpiryStatus } from '@/components/pantry/PantryItem';
