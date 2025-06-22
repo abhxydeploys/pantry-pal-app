@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { PlusCircle, Camera } from 'lucide-react';
 import { useState } from 'react';
 import BarcodeScannerModal from './BarcodeScannerModal'; // Import the new modal
+import { differenceInDays } from 'date-fns';
 
 interface PantryItemFormProps {
   onAddItem: (item: NewPantryItem) => void;
@@ -26,28 +27,27 @@ export default function PantryItemForm({ onAddItem }: PantryItemFormProps) {
   });
   const [isScannerOpen, setIsScannerOpen] = useState(false);
 
-  const handleScanComplete = (scannedData: { barcode?: string; expiryDate?: string }) => {
+  const handleScanComplete = (scannedData: { barcode?: string; expiryDate?: string; productName?: string }) => {
     setIsScannerOpen(false); // Close the modal
-    if (scannedData.barcode) {
-      // Potentially pre-fill name or fetch item details based on barcode
-      // For now, let's assume if a barcode is scanned, we can try to guess a name
-      // form.setValue('name', `Scanned Item ${scannedData.barcode.substring(0,4)}`);
+    
+    if (scannedData.productName) {
+      form.setValue('name', scannedData.productName, { shouldValidate: true });
+    } else if (scannedData.barcode) {
+      // You could potentially pre-fill name or fetch item details based on barcode
+      // For now, let's just log it.
       console.log('Barcode scanned:', scannedData.barcode);
     }
+    
     if (scannedData.expiryDate) {
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Normalize today to start of day
-      const expiry = new Date(scannedData.expiryDate);
-      expiry.setHours(0,0,0,0); // Normalize expiry to start of day
-
-      if (expiry.getTime() >= today.getTime()) {
-        const diffTime = expiry.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        form.setValue('shelfLife', diffDays >= 0 ? diffDays : 0);
-      } else {
-        form.setValue('shelfLife', 0); // Expired or past date
+      // The AI returns YYYY-MM-DD which needs a timezone adjustment to avoid off-by-one errors
+      const expiry = new Date(scannedData.expiryDate + "T00:00:00");
+      
+      // Ensure the date is valid and not in the past
+      if (!isNaN(expiry.getTime())) {
+        const daysUntilExpiry = differenceInDays(expiry, today);
+        form.setValue('shelfLife', daysUntilExpiry >= 0 ? daysUntilExpiry : 0, { shouldValidate: true });
       }
-      console.log('Expiry date extracted:', scannedData.expiryDate);
     }
   };
 
@@ -105,7 +105,7 @@ export default function PantryItemForm({ onAddItem }: PantryItemFormProps) {
               onClick={() => setIsScannerOpen(true)}
             >
               <Camera className="mr-2 h-5 w-5" />
-              Scan Item (Barcode/OCR)
+              Scan Item with AI
             </Button>
           </div>
         </form>

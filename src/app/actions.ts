@@ -1,6 +1,7 @@
 'use server';
 
 import { suggestRecipes as genAISuggestRecipes, type SuggestRecipesInput, type SuggestRecipesOutput } from '@/ai/flows/suggest-recipes';
+import { extractItemDetails as genAIExtractDetails, type ExtractItemDetailsInput, type ExtractItemDetailsOutput } from '@/ai/flows/extract-item-details-flow';
 
 export async function suggestRecipesAction(pantryItems: string[]): Promise<SuggestRecipesOutput | { error: string }> {
   if (!pantryItems || pantryItems.length === 0) {
@@ -20,6 +21,27 @@ export async function suggestRecipesAction(pantryItems: string[]): Promise<Sugge
     if (e.message) {
       // You might want to sanitize this or map to user-friendly messages
       errorMessage = `Failed to generate recipes: ${e.message.substring(0,100)}`; 
+    }
+    return { error: errorMessage };
+  }
+}
+
+export async function extractItemDetailsAction(photoDataUri: string): Promise<ExtractItemDetailsOutput | { error: string }> {
+  if (!photoDataUri) {
+    return { error: "No photo was provided." };
+  }
+  try {
+    const input: ExtractItemDetailsInput = { photoDataUri };
+    const result = await genAIExtractDetails(input);
+    if (!result) {
+        return { error: "AI could not process the image at this moment. Please try again."};
+    }
+    return result;
+  } catch (e: any) {
+    console.error("Error extracting item details via AI flow:", e);
+    let errorMessage = "An unexpected error occurred while processing the image.";
+    if (e.message) {
+      errorMessage = `Failed to process image: ${e.message.substring(0,100)}`;
     }
     return { error: errorMessage };
   }
