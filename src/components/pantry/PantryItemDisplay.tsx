@@ -56,9 +56,9 @@ const calculateExpiryDetails = (item: PantryItem): {
 
     if (remainingDays > nearingExpiryThresholdDays) {
       status = 'fresh';
-      statusColor = 'bg-primary text-primary-foreground';
-      borderColor = 'border-primary';
-      icon = <CheckCircle className="h-4 w-4 text-primary-foreground" />;
+      statusColor = 'bg-green-600 text-white';
+      borderColor = 'border-green-600';
+      icon = <CheckCircle className="h-4 w-4 text-white" />;
     } else if (remainingDays > expiresSoonThresholdDays) {
       status = 'nearing-expiry';
       statusColor = 'bg-yellow-500 text-black';
