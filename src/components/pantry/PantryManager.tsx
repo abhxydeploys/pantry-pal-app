@@ -133,8 +133,8 @@ export default function PantryManager() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
             {/* Left Column: Add Item Form */}
-            <div className="lg:col-span-2">
-                <Card className="shadow-lg rounded-lg">
+            <div className="lg:col-span-1">
+                <Card className="shadow-lg rounded-lg sticky top-24">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 font-headline text-xl">
                       <PackagePlus className="w-6 h-6 text-primary" />
@@ -148,39 +148,38 @@ export default function PantryManager() {
                 </Card>
             </div>
 
-            {/* Right Column: Sidebar area */}
-            <div className="lg:col-span-1 space-y-8">
+            {/* Right Column: Main Content */}
+            <div className="lg:col-span-2 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Card className="shadow-lg rounded-lg">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 font-headline text-xl whitespace-nowrap">
+                                <Utensils className="w-6 h-6 text-primary" />
+                                Recipe Ideas
+                            </CardTitle>
+                            <CardDescription>Get AI-powered recipe suggestions.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <RecipeSuggestions pantryItemNames={pantryItems.map(item => item.name)} />
+                        </CardContent>
+                    </Card>
+                    <PantryAlerts items={pantryItems} />
+                </div>
+
                 <Card className="shadow-lg rounded-lg">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2 font-headline text-xl whitespace-nowrap">
-                            <Utensils className="w-6 h-6 text-primary" />
-                            Recipe Ideas
+                        <CardTitle className="flex items-center gap-2 font-headline text-xl">
+                        <ListChecks className="w-6 h-6 text-primary" />
+                        Your Pantry
                         </CardTitle>
-                        <CardDescription>Get AI-powered recipe suggestions.</CardDescription>
+                        <CardDescription>View, manage, and track your food items.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <RecipeSuggestions pantryItemNames={pantryItems.map(item => item.name)} />
+                        <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} isLoading={isLoadingItems} />
                     </CardContent>
                 </Card>
-
-                <PantryAlerts items={pantryItems} />
             </div>
-
           </div>
-
-          {/* Full-width Pantry List */}
-          <Card className="shadow-lg rounded-lg">
-              <CardHeader>
-                  <CardTitle className="flex items-center gap-2 font-headline text-xl">
-                  <ListChecks className="w-6 h-6 text-primary" />
-                  Your Pantry
-                  </CardTitle>
-                  <CardDescription>View, manage, and track your food items.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                  <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} isLoading={isLoadingItems} />
-              </CardContent>
-          </Card>
       </main>
     </div>
   );
