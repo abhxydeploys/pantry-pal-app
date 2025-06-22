@@ -3,7 +3,6 @@
 
 import type { PantryItem } from '@/components/pantry/PantryItem';
 import PantryItemDisplay from '@/components/pantry/PantryItemDisplay';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -14,8 +13,8 @@ interface PantryListProps {
 }
 
 const PantryListSkeleton = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-    {[...Array(8)].map((_, i) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+    {[...Array(12)].map((_, i) => (
       <Card key={i} className="flex flex-col justify-between">
         <CardHeader>
           <Skeleton className="h-6 w-3/4" />
@@ -35,18 +34,14 @@ const PantryListSkeleton = () => (
 
 export default function PantryList({ items, onRemoveItem, isLoading }: PantryListProps) {
   if (isLoading) {
-    return (
-      <ScrollArea className="h-[400px] md:h-[500px] w-full pr-4">
-        <PantryListSkeleton />
-      </ScrollArea>
-    );
+    return <PantryListSkeleton />;
   }
   
   if (items.length === 0) {
     return (
-      <div className="text-center py-10 text-muted-foreground">
-        <p className="text-lg">Your pantry is empty.</p>
-        <p>Add some items to get started!</p>
+      <div className="text-center py-20 text-muted-foreground border-2 border-dashed rounded-lg">
+        <p className="text-lg font-medium">Your pantry is empty.</p>
+        <p className="text-sm">Add some items using the form to get started!</p>
       </div>
     );
   }
@@ -63,12 +58,10 @@ export default function PantryList({ items, onRemoveItem, isLoading }: PantryLis
 
 
   return (
-    <ScrollArea className="h-[400px] md:h-[500px] w-full pr-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {sortedItems.map(item => (
-          <PantryItemDisplay key={item.id} item={item} onRemoveItem={onRemoveItem} />
-        ))}
-      </div>
-    </ScrollArea>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+      {sortedItems.map(item => (
+        <PantryItemDisplay key={item.id} item={item} onRemoveItem={onRemoveItem} />
+      ))}
+    </div>
   );
 }

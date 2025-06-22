@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Mail, KeyRound, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
+import { Loader2, Mail, KeyRound, LogIn, UserPlus, AlertTriangle, UtensilsCrossed } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -168,11 +168,12 @@ export default function AuthForm() {
 
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-primary">Welcome to PantryPal</CardTitle>
-          <CardDescription>Sign in or create an account to manage your pantry.</CardDescription>
+        <CardHeader className="text-center space-y-2">
+            <UtensilsCrossed className="mx-auto h-12 w-12 text-primary" />
+          <CardTitle className="text-3xl font-bold font-headline text-primary">Welcome to PantryPal</CardTitle>
+          <CardDescription>Sign in or create an account to get started.</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -300,7 +301,7 @@ export default function AuthForm() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
             </div>
           </div>
           <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>

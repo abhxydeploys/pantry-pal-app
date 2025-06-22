@@ -10,13 +10,11 @@ import RecipeSuggestions from '@/components/pantry/RecipeSuggestions';
 import PantryAlerts from '@/components/pantry/PantryAlerts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Utensils, PackagePlus, ListChecks, Loader2, Sparkles, LogOut, LogIn, ShieldAlert } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { Utensils, PackagePlus, ListChecks, Loader2, Sparkles, LogOut, LogIn, ShieldAlert, UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -24,7 +22,6 @@ export default function PantryManager() {
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
   const { user, initialLoading } = useAuth();
-  const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -119,7 +116,7 @@ export default function PantryManager() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] text-center p-8">
         <ShieldAlert className="h-16 w-16 text-accent mb-6" />
-        <h2 className="text-3xl font-bold text-primary mb-3">Access Denied</h2>
+        <h2 className="text-3xl font-bold font-headline text-primary mb-3">Access Denied</h2>
         <p className="text-lg text-muted-foreground mb-6">
           Please log in to manage your pantry and discover delicious recipes.
         </p>
@@ -136,67 +133,70 @@ export default function PantryManager() {
   // Authenticated user view
   return (
     <div className="space-y-8">
-      <header className="text-center pt-8 pb-4">
-        <div className="flex justify-between items-center">
-          <div></div> {/* Spacer */}
-          <h1 className="flex items-center justify-center text-4xl md:text-5xl font-bold font-headline text-primary">
-            <Sparkles className="w-10 h-10 md:w-12 md:h-12 mr-3 text-accent" />
-            PantryPal
-          </h1>
+      <header className="bg-card border-b rounded-b-lg shadow-sm p-4 sticky top-0 z-10 bg-opacity-80 backdrop-blur-sm">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-3">
+             <UtensilsCrossed className="w-8 h-8 text-primary" />
+             <div>
+                <h1 className="text-2xl font-bold font-headline text-primary">PantryPal</h1>
+                <p className="text-sm text-muted-foreground">Welcome, {user.displayName || user.email}!</p>
+             </div>
+          </div>
           <Button onClick={handleLogout} variant="outline" size="sm">
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
         </div>
-        <p className="text-lg text-muted-foreground mt-2">Welcome, {user.displayName || user.email}! Manage your smart kitchen.</p>
       </header>
-
-      <PantryAlerts items={pantryItems} />
-
-      <div className="grid lg:grid-cols-3 gap-8 items-start">
-        <Card className="shadow-xl rounded-lg lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-headline text-2xl">
-              <PackagePlus className="w-7 h-7 text-primary" />
-              Add Item
-            </CardTitle>
-            <CardDescription>Enter new items or scan them using your camera.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PantryItemForm onAddItem={handleAddItem} />
-          </CardContent>
-        </Card>
-
-        <div className="lg:col-span-2 space-y-8">
-          <Card className="shadow-xl rounded-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline text-2xl">
-                <Utensils className="w-7 h-7 text-primary" />
-                Recipe Ideas
-              </CardTitle>
-              <CardDescription>Get AI-powered recipe suggestions based on your pantry.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RecipeSuggestions pantryItemNames={pantryItems.map(item => item.name)} />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
       
-      <Separator className="my-8" />
+      <main className="container mx-auto px-4 md:px-0 space-y-8">
+          <PantryAlerts items={pantryItems} />
 
-      <Card className="shadow-xl rounded-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-headline text-2xl">
-            <ListChecks className="w-7 h-7 text-primary" />
-            Your Pantry Items
-          </CardTitle>
-          <CardDescription>View, manage, and track expiry of your food items.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} isLoading={isLoadingItems} />
-        </CardContent>
-      </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+            <div className="md:col-span-1 space-y-8">
+              <Card className="shadow-lg rounded-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-headline text-xl">
+                    <PackagePlus className="w-6 h-6 text-primary" />
+                    Add New Item
+                  </CardTitle>
+                  <CardDescription>Enter new items or scan them.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PantryItemForm onAddItem={handleAddItem} />
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg rounded-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-headline text-xl">
+                    <Utensils className="w-6 h-6 text-primary" />
+                    Recipe Ideas
+                  </CardTitle>
+                  <CardDescription>Get AI-powered recipe suggestions.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RecipeSuggestions pantryItemNames={pantryItems.map(item => item.name)} />
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="md:col-span-2">
+              <Card className="shadow-lg rounded-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-headline text-xl">
+                    <ListChecks className="w-6 h-6 text-primary" />
+                    Your Pantry
+                  </CardTitle>
+                  <CardDescription>View, manage, and track your food items.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} isLoading={isLoadingItems} />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+      </main>
     </div>
   );
 }

@@ -7,71 +7,81 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Trash2, CalendarDays, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { formatDistanceToNowStrict, differenceInDays, format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface PantryItemDisplayProps {
   item: PantryItem;
   onRemoveItem: (id: string) => void;
 }
 
-const calculateExpiryDetails = (item: PantryItem): { remainingDays: number; status: ExpiryStatus; statusText: string; statusColor: string; icon: React.ReactNode } => {
+const calculateExpiryDetails = (item: PantryItem): { 
+  remainingDays: number; 
+  status: ExpiryStatus; 
+  statusText: string; 
+  statusColor: string; 
+  borderColor: string;
+  icon: React.ReactNode; 
+} => {
   const today = new Date();
-  today.setHours(0,0,0,0); // Normalize today to the start of the day
-  const addedDate = new Date(item.addedDate); // Ensure it's a Date object
-  addedDate.setHours(0,0,0,0); // Normalize addedDate to the start of the day
+  today.setHours(0,0,0,0);
+  const addedDate = new Date(item.addedDate);
+  addedDate.setHours(0,0,0,0);
 
   const expiryDate = new Date(addedDate);
   expiryDate.setDate(addedDate.getDate() + item.shelfLife);
 
-  const remainingDays = differenceInDays(expiryDate, today); // Number of *full days remaining AFTER today*
+  const remainingDays = differenceInDays(expiryDate, today);
   
   let status: ExpiryStatus;
   let statusText: string;
   let statusColor: string;
+  let borderColor: string;
   let icon: React.ReactNode;
 
-  // Thresholds (consistent with PantryAlerts.tsx)
-  const nearingExpiryThresholdDays = 7; // Items with 4-7 days remaining
-  const expiresSoonThresholdDays = 3;   // Items with 0-3 days remaining
+  const nearingExpiryThresholdDays = 7;
+  const expiresSoonThresholdDays = 3;
 
   if (remainingDays < 0) {
     status = 'expired';
     statusText = `Expired ${formatDistanceToNowStrict(expiryDate, { addSuffix: true })}`;
     statusColor = 'bg-destructive text-destructive-foreground';
+    borderColor = 'border-destructive';
     icon = <AlertTriangle className="h-4 w-4 text-destructive-foreground" />;
   } else {
-    // Determine statusText first
     if (remainingDays === 0) {
       statusText = `Expires today`;
     } else {
       statusText = `Expires in ${remainingDays} day${remainingDays === 1 ? '' : 's'}`;
     }
 
-    // Determine status and color based on remainingDays
-    if (remainingDays > nearingExpiryThresholdDays) { // More than 7 days left
+    if (remainingDays > nearingExpiryThresholdDays) {
       status = 'fresh';
       statusColor = 'bg-green-600 text-white';
+      borderColor = 'border-green-600';
       icon = <CheckCircle className="h-4 w-4 text-white" />;
-    } else if (remainingDays > expiresSoonThresholdDays) { // 4-7 days left
+    } else if (remainingDays > expiresSoonThresholdDays) {
       status = 'nearing-expiry';
       statusColor = 'bg-yellow-500 text-black';
+      borderColor = 'border-yellow-500';
       icon = <Clock className="h-4 w-4 text-black" />;
-    } else { // 0-3 days left
+    } else {
       status = 'expires-soon';
       statusColor = 'bg-accent text-accent-foreground';
+      borderColor = 'border-accent';
       icon = <AlertTriangle className="h-4 w-4 text-accent-foreground" />;
     }
   }
   
-  return { remainingDays, status, statusText, statusColor, icon };
+  return { remainingDays, status, statusText, statusColor, borderColor, icon };
 };
 
 
 export default function PantryItemDisplay({ item, onRemoveItem }: PantryItemDisplayProps) {
-  const { statusText, statusColor, icon } = calculateExpiryDetails(item);
+  const { statusText, statusColor, borderColor, icon } = calculateExpiryDetails(item);
   const addedDateFormatted = format(new Date(item.addedDate), "MMM dd, yyyy");
 
   return (
-    <Card className="flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow duration-200">
+    <Card className={cn("flex flex-col justify-between shadow-md hover:shadow-lg transition-all duration-200 border-l-4 hover:scale-105", borderColor)}>
       <CardHeader>
         <CardTitle className="font-headline text-xl">{item.name}</CardTitle>
         <CardDescription className="flex items-center text-sm text-muted-foreground pt-1">
@@ -80,7 +90,7 @@ export default function PantryItemDisplay({ item, onRemoveItem }: PantryItemDisp
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Badge className={`${statusColor} flex items-center gap-1.5 py-1 px-2.5 text-sm`}>
+        <Badge className={cn("flex items-center gap-1.5 py-1 px-2.5 text-sm", statusColor)}>
           {icon}
           {statusText}
         </Badge>
