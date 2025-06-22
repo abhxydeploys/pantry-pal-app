@@ -10,22 +10,21 @@ import RecipeSuggestions from '@/components/pantry/RecipeSuggestions';
 import PantryAlerts from '@/components/pantry/PantryAlerts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Utensils, PackagePlus, ListChecks, Loader2, Sparkles, LogOut, LogIn, ShieldAlert, UtensilsCrossed } from 'lucide-react';
+import { Utensils, PackagePlus, ListChecks, Loader2, Sparkles, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
-import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
-
+import { useRouter } from 'next/navigation';
 
 export default function PantryManager() {
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
   const { user, initialLoading } = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Fetch items from Firestore when user logs in or auth state is resolved.
     if (user && !initialLoading) {
       setIsLoadingItems(true);
       getPantryItems()
@@ -44,12 +43,17 @@ export default function PantryManager() {
           setIsLoadingItems(false);
         });
     } else if (!user && !initialLoading) {
-      // User is logged out, clear items and stop loading.
       setPantryItems([]);
       setIsLoadingItems(false);
     }
   }, [user, initialLoading, toast]);
 
+  useEffect(() => {
+    // Redirect to auth page if not logged in after initial load check.
+    if (!initialLoading && !user) {
+      router.push('/auth');
+    }
+  }, [initialLoading, user, router]);
 
   const handleAddItem = useCallback(async (newItem: NewPantryItem) => {
     if (!user) return;
@@ -70,14 +74,12 @@ export default function PantryManager() {
      if (!user) return;
     
     const originalItems = [...pantryItems];
-    // Optimistic UI update: remove item from state immediately.
     setPantryItems(prevItems => prevItems.filter(item => item.id !== id));
 
     try {
       await removePantryItem(id);
     } catch (error) {
        console.error("Failed to remove item:", error);
-       // If the database call fails, roll back the UI change.
        setPantryItems(originalItems);
        toast({
          variant: "destructive",
@@ -90,7 +92,7 @@ export default function PantryManager() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // The useEffect hook will handle clearing the pantry items.
+      // The useEffect hooks will handle clearing items and redirecting.
     } catch (error) {
       console.error("Error signing out: ", error);
       toast({
@@ -101,42 +103,21 @@ export default function PantryManager() {
     }
   };
   
-  // Display a full-page loader only during the initial app/auth load.
-  if (initialLoading) {
+  if (initialLoading || !user) {
     return (
-      <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]">
+      <div className="flex justify-center items-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="ml-4 text-xl text-muted-foreground">Loading Your Pantry...</p>
       </div>
     );
   }
 
-  // If not authenticated after loading, show login prompt
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] text-center p-8">
-        <ShieldAlert className="h-16 w-16 text-accent mb-6" />
-        <h2 className="text-3xl font-bold font-headline text-primary mb-3">Access Denied</h2>
-        <p className="text-lg text-muted-foreground mb-6">
-          Please log in to manage your pantry and discover delicious recipes.
-        </p>
-        <Link href="/auth" passHref>
-          <Button size="lg">
-            <LogIn className="mr-2 h-5 w-5" />
-            Login or Sign Up
-          </Button>
-        </Link>
-      </div>
-    );
-  }
-
-  // Authenticated user view
   return (
     <div className="space-y-8">
       <header className="bg-card border-b rounded-b-lg shadow-sm p-4 sticky top-0 z-10 bg-opacity-80 backdrop-blur-sm">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-             <UtensilsCrossed className="w-8 h-8 text-primary" />
+             <Utensils className="w-8 h-8 text-primary" />
              <div>
                 <h1 className="text-2xl font-bold font-headline text-primary">PantryPal</h1>
                 <p className="text-sm text-muted-foreground">Welcome, {user.displayName || user.email}!</p>
