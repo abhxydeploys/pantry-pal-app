@@ -9,7 +9,7 @@ import RecipeSuggestions from '@/components/pantry/RecipeSuggestions';
 import PantryAlerts from '@/components/pantry/PantryAlerts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Utensils, PackagePlus, ListChecks, Loader2, Sparkles, LogOut } from 'lucide-react';
+import { UtensilsCrossed, PackagePlus, ListChecks, Loader2, Sparkles, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -116,7 +116,7 @@ export default function PantryManager() {
       <header className="bg-card border-b rounded-b-lg shadow-sm p-4 sticky top-0 z-10 bg-opacity-80 backdrop-blur-sm">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-             <Utensils className="w-8 h-8 text-primary" />
+             <UtensilsCrossed className="w-8 h-8 text-primary" />
              <div>
                 <h1 className="text-2xl font-bold font-headline text-primary">PantryPal</h1>
                 <p className="text-sm text-muted-foreground">Welcome, {user.displayName || user.email}!</p>
@@ -130,56 +130,54 @@ export default function PantryManager() {
       </header>
       
       <main className="container mx-auto px-4 md:px-0 space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
-            {/* Left Column: Add Item Form */}
-            <div className="lg:col-span-1">
-                <Card className="shadow-lg rounded-lg sticky top-24">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 font-headline text-xl">
-                      <PackagePlus className="w-6 h-6 text-primary" />
-                      Add New Item
-                    </CardTitle>
-                    <CardDescription>Enter new items or scan them.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <PantryItemForm onAddItem={handleAddItem} />
-                  </CardContent>
-                </Card>
+          {/* Section 1: Form and Alerts */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+            <div className="md:col-span-1">
+              <Card className="shadow-lg rounded-lg sticky top-24">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-headline text-xl">
+                    <PackagePlus className="w-6 h-6 text-primary" />
+                    Add New Item
+                  </CardTitle>
+                  <CardDescription>Enter new items or scan them.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PantryItemForm onAddItem={handleAddItem} />
+                </CardContent>
+              </Card>
             </div>
-
-            {/* Right Column: Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Card className="shadow-lg rounded-lg">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 font-headline text-xl whitespace-nowrap">
-                                <Utensils className="w-6 h-6 text-primary" />
-                                Recipe Ideas
-                            </CardTitle>
-                            <CardDescription>Get AI-powered recipe suggestions.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <RecipeSuggestions pantryItemNames={pantryItems.map(item => item.name)} />
-                        </CardContent>
-                    </Card>
-                    <PantryAlerts items={pantryItems} />
-                </div>
-
-                <Card className="shadow-lg rounded-lg">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 font-headline text-xl">
-                        <ListChecks className="w-6 h-6 text-primary" />
-                        Your Pantry
-                        </CardTitle>
-                        <CardDescription>View, manage, and track your food items.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} isLoading={isLoadingItems} />
-                    </CardContent>
-                </Card>
+            <div className="md:col-span-2">
+              <PantryAlerts items={pantryItems} />
             </div>
           </div>
+
+          {/* Section 2: Pantry List */}
+          <Card className="shadow-lg rounded-lg">
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-headline text-xl">
+                  <ListChecks className="w-6 h-6 text-primary" />
+                  Your Pantry
+                  </CardTitle>
+                  <CardDescription>View, manage, and track your food items.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} isLoading={isLoadingItems} />
+              </CardContent>
+          </Card>
+          
+          {/* Section 3: Recipe Suggestions */}
+          <Card className="shadow-lg rounded-lg">
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-headline text-xl">
+                      <Sparkles className="w-6 h-6 text-primary" />
+                      Recipe Ideas
+                  </CardTitle>
+                  <CardDescription>Get AI-powered recipe suggestions based on your pantry.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <RecipeSuggestions pantryItemNames={pantryItems.map(item => item.name)} />
+              </CardContent>
+          </Card>
       </main>
     </div>
   );
