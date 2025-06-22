@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Camera, AlertTriangle, ScanLine, Loader2, Sparkles } from 'lucide-react';
+import { Camera, AlertTriangle, ScanLine, Loader2, Sparkles, Upload } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { extractItemDetailsAction } from '@/app/actions';
 
@@ -16,14 +16,14 @@ interface BarcodeScannerModalProps {
 
 export default function BarcodeScannerModal({ isOpen, onClose, onScanComplete }: BarcodeScannerModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null); // For capturing frames
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (!isOpen) {
-      // Stop video stream when modal is closed
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
@@ -43,50 +43,21 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanComplete }:
       } catch (error) {
         console.error('Error accessing camera:', error);
         setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to use the scanner.',
-        });
       }
     };
 
     getCameraPermission();
 
     return () => {
-      // Cleanup: Stop video stream when component unmounts or isOpen becomes false
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [isOpen, toast]);
+  }, [isOpen]);
 
-  const handleCaptureAndAnalyze = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    setIsProcessing(true);
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Draw the current video frame onto the canvas
-    const context = canvas.getContext('2d');
-    if (!context) {
-      setIsProcessing(false);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not capture image.' });
-      return;
-    }
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Get the image data as a data URI
-    const photoDataUri = canvas.toDataURL('image/jpeg');
-
+  const analyzeImage = async (photoDataUri: string) => {
     const result = await extractItemDetailsAction(photoDataUri);
-
     setIsProcessing(false);
 
     if ('error' in result) {
@@ -108,6 +79,54 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanComplete }:
     }
   };
 
+  const handleCaptureAndAnalyze = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    setIsProcessing(true);
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      setIsProcessing(false);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not capture image.' });
+      return;
+    }
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const photoDataUri = canvas.toDataURL('image/jpeg');
+    await analyzeImage(photoDataUri);
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessing(true);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const photoDataUri = e.target?.result as string;
+      if (photoDataUri) {
+        await analyzeImage(photoDataUri);
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not read file.' });
+        setIsProcessing(false);
+      }
+    };
+    reader.onerror = () => {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to read file.' });
+      setIsProcessing(false);
+    };
+    reader.readAsDataURL(file);
+    // Reset file input value to allow selecting the same file again
+    event.target.value = '';
+  };
+
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[480px]">
@@ -117,11 +136,18 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanComplete }:
             Item Scanner
           </DialogTitle>
           <DialogDescription>
-            Point your camera at the item's barcode and expiry date, then capture the image for AI analysis.
+            Point your camera at an item to capture an image, or upload a file for AI analysis.
           </DialogDescription>
         </DialogHeader>
 
         <div className="my-4 space-y-3">
+           <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
           <div className="relative w-full aspect-video bg-muted rounded-md overflow-hidden border">
             <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
             <canvas ref={canvasRef} className="hidden" />
@@ -141,9 +167,9 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanComplete }:
           {hasCameraPermission === false && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Camera Access Required</AlertTitle>
+              <AlertTitle>Camera Access Denied</AlertTitle>
               <AlertDescription>
-                Camera permission is denied or unavailable. Please enable it in your browser settings.
+                You can still upload a file, or you can enable camera access in your browser settings.
               </AlertDescription>
             </Alert>
           )}
@@ -158,9 +184,13 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanComplete }:
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:justify-between">
-          <Button variant="outline" onClick={onClose} disabled={isProcessing}>
+        <DialogFooter className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+           <Button variant="outline" onClick={onClose} disabled={isProcessing} className="sm:col-start-1">
             Cancel
+          </Button>
+          <Button variant="secondary" onClick={handleUploadClick} disabled={isProcessing}>
+            <Upload className="mr-2 h-4 w-4" />
+            Upload File
           </Button>
           <Button onClick={handleCaptureAndAnalyze} disabled={!hasCameraPermission || isProcessing}>
             {isProcessing ? (
@@ -168,7 +198,7 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanComplete }:
             ) : (
               <Sparkles className="mr-2 h-4 w-4" />
             )}
-            Capture & Analyze
+            Capture
           </Button>
         </DialogFooter>
       </DialogContent>
