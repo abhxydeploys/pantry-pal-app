@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -151,7 +150,7 @@ export default function AuthForm() {
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
         <div className="absolute inset-0 bg-primary/80" />
          <Image
-            src="https://placehold.co/1200x1800.png"
+            src="https://placehold.co/1200x1800/000000/000000.png"
             data-ai-hint="kitchen ingredients"
             alt="A vibrant collection of fresh vegetables and pantry staples."
             fill
