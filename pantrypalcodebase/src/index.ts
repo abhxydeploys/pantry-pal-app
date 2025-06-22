@@ -1,5 +1,5 @@
 
-import * as functions from "firebase-functions";
+import {onSchedule, type ScheduledEvent} from "firebase-functions/v2/scheduler";
 import * as admin from "firebase-admin";
 import { differenceInDays } from "date-fns";
 
@@ -20,16 +20,18 @@ interface ExpiringItem {
   remainingDays: number;
 }
 
-// This function will run every day at 8:00 AM in the timezone of your project settings.
-export const dailyExpiryCheck = functions.region("asia-east1").pubsub
-  .schedule("every day 08:00")
-  .onRun(async (context) => {
-    console.log("Running daily expiry check...");
+// This function will run every day at 8:00 AM in the specified timezone.
+export const dailyExpiryCheck = onSchedule({
+  schedule: "every day 08:00",
+  timeZone: "Asia/Singapore", // Timezone for asia-east1 region
+  region: "asia-east1"
+}, async (event: ScheduledEvent) => {
+    console.log("Running daily expiry check for event: ", event.scheduleTime);
 
     const pantriesSnapshot = await db.collection("pantries").get();
     if (pantriesSnapshot.empty) {
       console.log("No pantries found.");
-      return null;
+      return;
     }
 
     const today = new Date();
@@ -125,5 +127,4 @@ export const dailyExpiryCheck = functions.region("asia-east1").pubsub
     );
 
     console.log("Daily expiry check complete.");
-    return null;
   });
