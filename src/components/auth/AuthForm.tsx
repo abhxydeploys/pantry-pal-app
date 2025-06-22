@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Mail, KeyRound, LogIn, UserPlus, AlertTriangle, UtensilsCrossed, Globe, Sparkles, CalendarClock } from 'lucide-react';
+import { Loader2, Mail, KeyRound, LogIn, UserPlus, AlertTriangle, UtensilsCrossed, Leaf, ChefHat, BellRing } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
@@ -166,21 +166,21 @@ export default function AuthForm() {
               <p className="font-semibold">&ldquo;Stop Waste, Start Cooking.&rdquo;</p>
               <div className="space-y-6 pt-6 border-t border-primary-foreground/20">
                   <div className="flex items-start gap-4">
-                      <div className="bg-primary-foreground/10 p-2 rounded-full"><Globe className="w-5 h-5" /></div>
+                      <div className="bg-primary-foreground/10 p-2 rounded-full"><Leaf className="w-5 h-5" /></div>
                       <div>
                           <h3 className="font-semibold text-base">Reduce Food Waste</h3>
                           <p className="text-primary-foreground/80 text-sm">Join the movement to reduce food waste. Track what you have, use what you buy, and save money.</p>
                       </div>
                   </div>
                   <div className="flex items-start gap-4">
-                      <div className="bg-primary-foreground/10 p-2 rounded-full"><Sparkles className="w-5 h-5" /></div>
+                      <div className="bg-primary-foreground/10 p-2 rounded-full"><ChefHat className="w-5 h-5" /></div>
                       <div>
                           <h3 className="font-semibold text-base">Discover Recipes</h3>
                           <p className="text-primary-foreground/80 text-sm">Our AI chef suggests delicious recipes based on the ingredients you already own.</p>
                       </div>
                   </div>
                   <div className="flex items-start gap-4">
-                      <div className="bg-primary-foreground/10 p-2 rounded-full"><CalendarClock className="w-5 h-5" /></div>
+                      <div className="bg-primary-foreground/10 p-2 rounded-full"><BellRing className="w-5 h-5" /></div>
                       <div>
                           <h3 className="font-semibold text-base">Automated Alerts</h3>
                           <p className="text-primary-foreground/80 text-sm">Get timely email reminders before your food expires, preventing spoilage.</p>

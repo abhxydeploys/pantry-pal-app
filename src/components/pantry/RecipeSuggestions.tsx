@@ -81,7 +81,7 @@ export default function RecipeSuggestions({ pantryItemNames }: RecipeSuggestions
 
       {recipes && recipes.length > 0 && (
         <div className="mt-6">
-          <h3 className="text-2xl font-semibold mb-4 font-headline flex items-center">
+          <h3 className="text-2xl font-semibold mb-4 font-headline flex items-center whitespace-nowrap">
             <Sparkles className="h-6 w-6 mr-2 text-accent" />
             Suggested Recipes
           </h3>
