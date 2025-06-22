@@ -129,11 +129,11 @@ export default function PantryManager() {
         </div>
       </header>
       
-      <main className="container mx-auto px-4 md:px-0">
+      <main className="container mx-auto px-4 md:px-0 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
-            {/* Main content area */}
-            <div className="lg:col-span-2 space-y-8">
+            {/* Left Column: Add Item Form */}
+            <div className="lg:col-span-2">
                 <Card className="shadow-lg rounded-lg">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 font-headline text-xl">
@@ -146,22 +146,9 @@ export default function PantryManager() {
                     <PantryItemForm onAddItem={handleAddItem} />
                   </CardContent>
                 </Card>
-
-                <Card className="shadow-lg rounded-lg">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 font-headline text-xl">
-                        <ListChecks className="w-6 h-6 text-primary" />
-                        Your Pantry
-                        </CardTitle>
-                        <CardDescription>View, manage, and track your food items.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} isLoading={isLoadingItems} />
-                    </CardContent>
-                </Card>
             </div>
 
-            {/* Sidebar area */}
+            {/* Right Column: Sidebar area */}
             <div className="lg:col-span-1 space-y-8">
                 <Card className="shadow-lg rounded-lg">
                     <CardHeader>
@@ -180,6 +167,20 @@ export default function PantryManager() {
             </div>
 
           </div>
+
+          {/* Full-width Pantry List */}
+          <Card className="shadow-lg rounded-lg">
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-2 font-headline text-xl">
+                  <ListChecks className="w-6 h-6 text-primary" />
+                  Your Pantry
+                  </CardTitle>
+                  <CardDescription>View, manage, and track your food items.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <PantryList items={pantryItems} onRemoveItem={handleRemoveItem} isLoading={isLoadingItems} />
+              </CardContent>
+          </Card>
       </main>
     </div>
   );
