@@ -7,6 +7,19 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
+// Define interfaces for better type safety
+interface StoredPantryItem {
+  id: string;
+  name: string;
+  shelfLife: number;
+  addedDate: admin.firestore.Timestamp;
+}
+
+interface ExpiringItem {
+  name: string;
+  remainingDays: number;
+}
+
 // This function will run every day at 8:00 AM in the timezone of your project settings.
 export const dailyExpiryCheck = functions.pubsub
   .schedule("every day 08:00")
@@ -32,8 +45,8 @@ export const dailyExpiryCheck = functions.pubsub
           return; // Skip users with empty pantries
         }
 
-        const expiringItems = pantryData.items
-          .map((item: any) => {
+        const expiringItems: ExpiringItem[] = pantryData.items
+          .map((item: StoredPantryItem) => {
             const addedDate = item.addedDate.toDate();
             const expiryDate = new Date(addedDate);
             expiryDate.setDate(addedDate.getDate() + item.shelfLife);
@@ -43,7 +56,7 @@ export const dailyExpiryCheck = functions.pubsub
               remainingDays,
             };
           })
-          .filter((item: { name: string; remainingDays: number }) => 
+          .filter((item: ExpiringItem) => 
             item.remainingDays >= 0 && item.remainingDays <= alertThresholdDays
           );
 
@@ -60,22 +73,38 @@ export const dailyExpiryCheck = functions.pubsub
             return;
           }
 
-          // Construct the email content
+          // Construct a styled email
+          const appUrl = `https://pantrypal-iyxgb.firebaseapp.com`;
           const emailHtml = `
-            <h1>PantryPal Expiry Alert!</h1>
-            <p>Hello! You have some items in your pantry that are expiring soon:</p>
-            <ul>
-              ${expiringItems
-                .map((item: { name: string; remainingDays: number }) => {
-                  const dayText =
-                    item.remainingDays === 0
-                      ? "Expires today"
-                      : `Expires in ${item.remainingDays} day${item.remainingDays === 1 ? "" : "s"}`;
-                  return `<li><b>${item.name}</b>: ${dayText}</li>`;
-                })
-                .join("")}
-            </ul>
-            <p>Log in to PantryPal to manage your items and prevent food waste!</p>
+            <body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; background-color: #f9fafb;">
+              <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+                <div style="background-color: #6d28d9; color: white; padding: 20px; text-align: center;">
+                  <h1 style="margin:0; font-size: 24px;">PantryPal Expiry Alert!</h1>
+                </div>
+                <div style="padding: 20px;">
+                  <p>Hello!</p>
+                  <p>You have some items in your pantry that are expiring soon:</p>
+                  <ul style="list-style-type: none; padding: 0;">
+                    ${expiringItems
+                      .map((item: ExpiringItem) => {
+                        const dayText =
+                          item.remainingDays === 0
+                            ? "Expires today"
+                            : `Expires in ${item.remainingDays} day${item.remainingDays === 1 ? "" : "s"}`;
+                        return `<li style="background-color: #f3f4f6; margin-bottom: 10px; padding: 15px; border-radius: 5px; border-left: 5px solid #ef4444;"><b>${item.name}</b>: ${dayText}</li>`;
+                      })
+                      .join("")}
+                  </ul>
+                  <p>Log in to PantryPal to manage your items and prevent food waste!</p>
+                  <a href="${appUrl}" style="display: inline-block; background-color: #6d28d9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 15px; font-weight: bold;">
+                    Go to PantryPal
+                  </a>
+                </div>
+                <div style="background-color: #f8f9fa; color: #6c757d; padding: 15px; text-align: center; font-size: 12px;">
+                  <p>You are receiving this email because you have an account with PantryPal.</p>
+                </div>
+              </div>
+            </body>
           `;
 
           // Create a document in the 'mail' collection to trigger the email extension
