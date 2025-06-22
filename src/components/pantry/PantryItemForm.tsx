@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { SubmitHandler } from 'react-hook-form';
@@ -40,22 +39,29 @@ export default function PantryItemForm({ onAddItem }: PantryItemFormProps) {
     }
     
     if (scannedData.expiryDate) {
-      const today = new Date();
-      // Normalize today's date to the start of the day for consistent calculations
-      today.setHours(0, 0, 0, 0);
-
-      // The AI returns YYYY-MM-DD. Appending T00:00:00 avoids timezone-related off-by-one errors.
-      const expiry = new Date(scannedData.expiryDate + "T00:00:00");
+      // The AI returns YYYY-MM-DD. To avoid timezone parsing issues with `new Date(string)`,
+      // we parse the components manually. This reliably creates a date in the user's local timezone.
+      const dateParts = scannedData.expiryDate.split('-').map(Number);
       
-      if (!isNaN(expiry.getTime())) {
-          const daysUntilExpiry = differenceInDays(expiry, today);
-          
-          // The form validation requires shelfLife to be at least 1.
-          // If the item expires today or is already expired, we'll default to 1 day
-          // to allow the form to be populated. The user can adjust if needed.
-          const shelfLifeValue = daysUntilExpiry >= 1 ? daysUntilExpiry : 1;
-          
-          form.setValue('shelfLife', shelfLifeValue, { shouldValidate: true });
+      if (dateParts.length === 3 && !dateParts.some(isNaN)) {
+        const [year, month, day] = dateParts;
+        // new Date() month is 0-indexed, so we subtract 1.
+        const expiry = new Date(year, month - 1, day);
+        
+        const today = new Date();
+        // Normalize today's date to the start of the day for consistent calculations
+        today.setHours(0, 0, 0, 0);
+
+        if (!isNaN(expiry.getTime())) {
+            const daysUntilExpiry = differenceInDays(expiry, today);
+            
+            // The form validation requires shelfLife to be at least 1.
+            // If the item expires today or is already expired (daysUntilExpiry < 1),
+            // we default to 1 day to allow the form to be populated. The user can adjust if needed.
+            const shelfLifeValue = daysUntilExpiry >= 1 ? daysUntilExpiry : 1;
+            
+            form.setValue('shelfLife', shelfLifeValue, { shouldValidate: true });
+        }
       }
     }
   };
