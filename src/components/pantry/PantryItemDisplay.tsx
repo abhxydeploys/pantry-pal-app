@@ -97,11 +97,11 @@ export default function PantryItemDisplay({ item, onRemoveItem }: PantryItemDisp
       </CardContent>
       <CardFooter>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={() => onRemoveItem(item.id)}
           aria-label={`Remove ${item.name} from pantry`}
-          className="text-destructive hover:bg-destructive/10"
+          className="text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive"
         >
           <Trash2 className="mr-2 h-4 w-4" />
           Remove
