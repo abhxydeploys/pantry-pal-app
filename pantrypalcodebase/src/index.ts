@@ -21,7 +21,7 @@ interface ExpiringItem {
 }
 
 // This function will run every day at 8:00 AM in the timezone of your project settings.
-export const dailyExpiryCheck = functions.pubsub
+export const dailyExpiryCheck = functions.region("asia-east1").pubsub
   .schedule("every day 08:00")
   .onRun(async (context) => {
     console.log("Running daily expiry check...");
