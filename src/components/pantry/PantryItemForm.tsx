@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { SubmitHandler } from 'react-hook-form';
@@ -40,13 +41,21 @@ export default function PantryItemForm({ onAddItem }: PantryItemFormProps) {
     
     if (scannedData.expiryDate) {
       const today = new Date();
-      // The AI returns YYYY-MM-DD which needs a timezone adjustment to avoid off-by-one errors
+      // Normalize today's date to the start of the day for consistent calculations
+      today.setHours(0, 0, 0, 0);
+
+      // The AI returns YYYY-MM-DD. Appending T00:00:00 avoids timezone-related off-by-one errors.
       const expiry = new Date(scannedData.expiryDate + "T00:00:00");
       
-      // Ensure the date is valid and not in the past
       if (!isNaN(expiry.getTime())) {
-        const daysUntilExpiry = differenceInDays(expiry, today);
-        form.setValue('shelfLife', daysUntilExpiry >= 0 ? daysUntilExpiry : 0, { shouldValidate: true });
+          const daysUntilExpiry = differenceInDays(expiry, today);
+          
+          // The form validation requires shelfLife to be at least 1.
+          // If the item expires today or is already expired, we'll default to 1 day
+          // to allow the form to be populated. The user can adjust if needed.
+          const shelfLifeValue = daysUntilExpiry >= 1 ? daysUntilExpiry : 1;
+          
+          form.setValue('shelfLife', shelfLifeValue, { shouldValidate: true });
       }
     }
   };
