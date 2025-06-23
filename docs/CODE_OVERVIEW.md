@@ -1,7 +1,7 @@
 
 # PantryPal: Code Flow and Architecture Overview
 
-This document provides a detailed, step-by-step explanation of the PantryPal application's code flow. It covers user authentication, core application features, AI-powered interactions, and backend automation.
+This document provides a detailed, step-by-step explanation of the PantryPal application's code flow. It covers user authentication, core application features, AI-powered interactions, and backend automation, complete with diagrams to visualize each process.
 
 **Tech Stack:**
 - **Frontend:** Next.js (with App Router), React, TypeScript
@@ -15,6 +15,20 @@ This document provides a detailed, step-by-step explanation of the PantryPal app
 ## 1. Authentication Flow (`/auth`)
 
 The authentication process ensures that only registered users can access the pantry features.
+
+### Flow Diagram: User Login/Signup
+
+```
+[User visits /] --> [PantryManager] -- no user? --> [Redirects to /auth]
+                                                            |
+                                                            v
+[AuthPage] --> [AuthForm] -- submits form --> [Firebase Auth SDK] --> [Firebase Backend]
+      ^                                                  |                    |
+      |                                                  | (success)          |
+      +---- [Redirects to /] <-- [AuthContext updated] <--+--------------------+
+```
+
+### Step-by-Step Explanation:
 
 **Entry Point & Redirection:**
 1.  A user visits the site. The main page (`/`) renders the `PantryManager` component.
@@ -38,7 +52,42 @@ The authentication process ensures that only registered users can access the pan
 
 ## 2. Main Application: Pantry Management
 
-Once authenticated, the user lands on the main page, which is driven by the `PantryManager` component.
+Once authenticated, the user lands on the main page, which is driven by the `PantryManager` component. This section covers fetching, adding, and removing items.
+
+### Flow Diagram: Fetching Pantry Items
+
+```
+[PantryManager (useEffect)] --> [pantry-service: getPantryItems()] --> [Firestore DB: Read user's doc] --> [Returns items array]
+                                                                                                                |
+                                                                                                                v
+[PantryManager state updated] --> [PantryList] --> [Renders PantryItemDisplay components]
+```
+
+### Flow Diagram: Adding a New Item
+
+```
+[User fills PantryItemForm] -- submits --> [PantryManager: handleAddItem()] --> [pantry-service: addPantryItem()]
+                                                                                             |
+                                                                                             v
+                                             [Firestore DB: Update user's doc with new item] <-- [pantry-service: getPantryItems()]
+                                                                                             |
+                                                                                             v
+                               [Returns new item] --> [PantryManager state updated] --> [UI re-renders]
+```
+
+### Flow Diagram: Removing an Item
+
+```
+[User clicks Remove] --> [PantryItemDisplay] --> [PantryManager: handleRemoveItem()] --> [pantry-service: removePantryItem()]
+                                                                                               |
+                                                                                               v
+                                      [Firestore DB: Update user's doc, removing item] <-- [pantry-service: getPantryItems()]
+                                                                                               | (completes)
+                                                                                               v
+                              [UI immediately updated] <---- [PantryManager state updated] <---+
+```
+
+### Step-by-Step Explanation:
 
 **Core Component (`src/components/pantry/PantryManager.tsx`):**
 1.  This is the primary "smart" component that orchestrates the main view.
@@ -68,6 +117,23 @@ PantryPal uses Genkit to integrate with the Gemini AI model for two key features
 
 ### A. AI Item Scanner
 
+### Flow Diagram: AI Item Scanning
+
+```
+[User clicks "Scan Item"] --> [BarcodeScannerModal: Opens camera] --> [User captures image]
+                                                                              |
+                                                                              v
+[Image converted to Data URI] --> [Server Action: extractItemDetailsAction()] --> [Genkit Flow: extractItemDetails()]
+                                                                                                    |
+                                                                                                    v
+                                                          [Gemini AI: Analyzes image] --> [Returns structured JSON]
+                                                                                                    |
+                                                                                                    v
+[Server Action returns JSON] --> [BarcodeScannerModal: onScanComplete()] --> [PantryItemForm fields populated]
+```
+
+### Step-by-Step Explanation:
+
 1.  **Trigger:** The user clicks the "Scan Item with AI" button in `PantryItemForm`, which opens the `BarcodeScannerModal`.
 2.  **Image Capture (`BarcodeScannerModal.tsx`):**
     - The modal requests camera access using `navigator.mediaDevices.getUserMedia`.
@@ -82,6 +148,23 @@ PantryPal uses Genkit to integrate with the Gemini AI model for two key features
 5.  **Result:** The structured JSON is sent back to the client. The `onScanComplete` callback in the modal receives this data and uses `form.setValue()` to automatically populate the "Item Name" and "Shelf Life" fields in the main form.
 
 ### B. AI Recipe Suggestions
+
+### Flow Diagram: Recipe Suggestion
+
+```
+[PantryManager] --> [RecipeSuggestions component] --> [User clicks "Suggest Recipes"]
+                                                            |
+                                                            v
+[Collects pantry item names] --> [Server Action: suggestRecipesAction()] --> [Genkit Flow: suggestRecipes()]
+                                                                                       |
+                                                                                       v
+                                          [Gemini AI: Generates recipes] --> [Returns structured JSON]
+                                                                                       |
+                                                                                       v
+[Server Action returns JSON] --> [RecipeSuggestions state updated] --> [UI renders Accordion of recipes]
+```
+
+### Step-by-Step Explanation:
 
 1.  **Trigger:** The user clicks the "Suggest Recipes" button in `RecipeSuggestions.tsx`.
 2.  **Data Preparation:** The component gathers the names of all items currently in the pantry into an array of strings.
@@ -98,6 +181,23 @@ PantryPal uses Genkit to integrate with the Gemini AI model for two key features
 ## 4. Backend Automation: Daily Expiry Alerts
 
 This is a critical background process that runs without any user interaction.
+
+### Flow Diagram: Automated Daily Email Alert
+
+```
+[Google Cloud Scheduler (8 AM)] -- triggers --> [Cloud Function: dailyExpiryCheck]
+                                                            |
+                                                            v
+                    [Firestore DB: Reads ALL pantry docs] --> [Function iterates through each user/item]
+                                                            |
+                                                            v
+[Finds expiring items] -- has items? --> [Firebase Auth: Get user email] --> [Constructs HTML email]
+                                                                                         |
+                                                                                         v
+                                     [Firestore DB: Writes to 'mail' collection] --> [Trigger Email Extension sends email]
+```
+
+### Step-by-Step Explanation:
 
 1.  **File Location:** `pantrypalcodebase/src/index.ts`. This directory contains code for a Firebase Cloud Function.
 2.  **Trigger:** The function `dailyExpiryCheck` is defined with `onSchedule`. The configuration `schedule: "every day 08:00"` and `timeZone: "Asia/Singapore"` tells Google Cloud to automatically run this function once a day at the specified time.
