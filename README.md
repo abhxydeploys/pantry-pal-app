@@ -39,6 +39,3 @@ npm run dev
 ```
 The application will now use your key for all AI features.
 
-## Submitting Your Project
-
-When you zip this project to submit it, **make sure you do not include the `.env.local` file**. The included `.gitignore` file already prevents this file from being saved in Git. This ensures your secret key is not shared. Your professor or grader will need to follow the same "Local Development Setup" steps to run the app with their own key.
